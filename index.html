@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motion check</title>
+<style>
+:root{--bg:#111;--fg:#f4efe4;--ok:#b6f36b;--bad:#ff5d5d}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;padding:32px 16px}
+main{max-width:640px;margin:auto}h1{font-size:34px;margin:0 0 8px}
+.row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #333;padding:12px 0}
+.v{font-weight:700;text-align:right}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.dot{width:40px;height:40px;border-radius:50%;background:var(--ok);animation:spin 1.2s linear infinite;margin:20px 0}
+@keyframes spin{0%{transform:translateX(0)}50%{transform:translateX(160px)}100%{transform:translateX(0)}}
+.fix{background:#222;border-radius:10px;padding:14px 16px;margin-top:20px}
+</style></head><body><main>
+<h1>Motion check</h1><p>Open this on the PC where animations look frozen. The dot below should slide back and forth.</p>
+<div class="dot"></div>
+<div class="row"><span>Browser says "reduce motion"</span><span class="v" id="rm"></span></div>
+<div class="row"><span>Animation frames per second</span><span class="v" id="fps">measuring…</span></div>
+<div class="row"><span>Graphics (WebGL renderer)</span><span class="v" id="gl"></span></div>
+<div class="row"><span>Hardware acceleration</span><span class="v" id="hw"></span></div>
+<div class="fix" id="fix" hidden><b>Cause found:</b> Windows is telling Chrome to reduce motion, so sites switch their animations off.<br>
+Turn it back on: <b>Settings → Accessibility → Visual effects → Animation effects → On</b> (Windows 11), or
+<b>Settings → Ease of Access → Display → Show animations in Windows → On</b> (Windows 10). Then reload this page.</div>
+</main><script>
+const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const e=id=>document.getElementById(id);
+e('rm').textContent=rm?'YES (this freezes site animations)':'no';e('rm').className='v '+(rm?'bad':'ok');e('fix').hidden=!rm;
+let gl='unavailable',sw=false;try{const c=document.createElement('canvas').getContext('webgl');const d=c.getExtension('WEBGL_debug_renderer_info');gl=d?c.getParameter(d.UNMASKED_RENDERER_WEBGL):c.getParameter(c.RENDERER);sw=/swiftshader|llvmpipe|software|basic render/i.test(gl)}catch(x){}
+e('gl').textContent=gl;e('hw').textContent=gl==='unavailable'?'WebGL off':(sw?'OFF (software rendering)':'on');e('hw').className='v '+(sw||gl==='unavailable'?'bad':'ok');
+let n=0,t0=performance.now();(function f(t){n++;if(t-t0<2000)requestAnimationFrame(f);else{const fps=Math.round(n*1000/(t-t0));e('fps').textContent=fps+(fps<40?' (throttled: Energy Saver or a background tab?)':'');e('fps').className='v '+(fps<40?'bad':'ok')}})(t0);
+</script></body></html>
